@@ -1,0 +1,23 @@
+# jenkins-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jenkins
+  labels:
+    app: jenkins
+spec:
+  containers:
+    - name: jenkins
+      image: jenkins/jenkins:lts
+      ports:
+        - containerPort: 8080
+      env:
+        - name: JENKINS_OPTS
+          value: "--prefix=/jenkins"
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "1"
