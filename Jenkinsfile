@@ -1,5 +1,19 @@
 pipeline {
-  agent any
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: python
+    image: python:3.11-slim
+    command:
+    - cat
+    tty: true
+"""
+    }
+  }
 
   stages {
 
@@ -10,17 +24,20 @@ pipeline {
     }
 
     stage('Unit Tests') {
-     steps {
-        sh '''
-         cd app
-         python3 -m venv .venv
-         . .venv/bin/activate
-         pip install -r requirements.txt
-         pytest
-        '''
-         }
+      steps {
+        container('python') {
+          sh '''
+            cd app
+            python3 --version
+            python3 -m venv .venv
+            . .venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            pytest
+          '''
+        }
+      }
     }
-
 
     stage('Terraform Validate') {
       steps {
