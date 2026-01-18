@@ -17,6 +17,15 @@ spec:
 
   stages {
 
+  stages {
+    stage('DEBUG') {
+      steps {
+        container('debug') {
+          sh 'echo RUNNING FROM UPDATED JENKINSFILE'
+        }
+      }
+    }
+
     stage('Checkout') {
       steps {
         checkout scm
