@@ -1,33 +1,8 @@
 pipeline {
     agent {
+        // Reference the Pod Template you created in the Jenkins GUI
         kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  serviceAccountName: jenkins
-  containers:
-    - name: python
-      image: python:3.11-slim
-      command: ["cat"]
-      tty: true
-      volumeMounts:
-        - name: jenkins-ca
-          mountPath: /etc/ssl/certs/jenkins-ca
-          readOnly: true
-
-    - name: jnlp
-      image: jenkins/inbound-agent:3355.v388858a_47b_33-2-jdk21
-      volumeMounts:
-        - name: jenkins-ca
-          mountPath: /etc/ssl/certs/jenkins-ca
-          readOnly: true
-
-  volumes:
-    - name: jenkins-ca
-      configMap:
-        name: jenkins-ca-cert
-"""
+            label 'python'   // Must match the label of your GUI pod template
         }
     }
 
