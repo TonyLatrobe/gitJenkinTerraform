@@ -1,90 +1,112 @@
 pipeline {
-  agent {
-    kubernetes {
-      label 'pipetest-agent'
-      defaultContainer 'python'
-      yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  serviceAccountName: jenkins
-  containers:
-  - name: python
-    image: python:3.11-slim
-    command:
-    - cat
-    tty: true
-    resources:
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
-  - name: terraform
-    image: hashicorp/terraform:1.7.6
-    command:
-    - cat
-    tty: true
-    resources:
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
-  restartPolicy: Never
-"""
-    }
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
-    stage('Python Unit Tests') {
-      steps {
-        container('python') {
-          sh '''
-            cd app
-            python3 -m venv .venv
-            . .venv/bin/activate
-            pip install -r requirements.txt
-            pytest
-          '''
+    agent {
+        kubernetes {
+            inheritFrom 'pipetest-agent'  // Use the static pod template
         }
-      }
     }
 
-    stage('Terraform Validate') {
-      steps {
-        container('terraform') {
-          sh '''
-            terraform init
-            terraform validate
-          '''
+    environment {
+        PYTHON_IMAGE = 'python:3.11-slim'
+        DOCKER_IMAGE = 'myapp'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/TonyLatrobe/gitJenkinTerraform'
+            }
         }
-      }
-    }
 
-    stage('Terraform Plan') {
-      steps {
-        container('terraform') {
-          sh '''
-            terraform plan -out=tfplan
-          '''
+        stage('Setup CA Cert') {
+            steps {
+                container('python') {
+                    sh '''
+                    echo "Copying CA cert..."
+                    cp /etc/ssl/certs/jenkins-ca/ca.crt /usr/local/share/ca-certificates/jenkins-ca.crt
+                    update-ca-certificates
+                    '''
+                }
+            }
         }
-      }
-    }
-  }
 
-  post {
-    always {
-      echo "Cleaning up workspace"
-      cleanWs()
+        stage('Unit Tests') {
+            steps {
+                container('python') {
+                    sh '''
+                    cd app
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r requirements.txt
+                    pytest
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                container('python') {
+                    sh '''
+                    terraform init
+                    terraform validate
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Security') {
+            steps {
+                container('python') {
+                    sh '''
+                    tfsec terraform/
+                    checkov -d terraform/
+                    '''
+                }
+            }
+        }
+
+        stage('Policy as Code') {
+            steps {
+                container('python') {
+                    sh '''
+                    conftest test terraform/ --policy policies/opa
+                    '''
+                }
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                container('python') {
+                    sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} app/'
+                }
+            }
+        }
+
+        stage('Container Security') {
+            steps {
+                container('python') {
+                    sh 'trivy image ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                container('python') {
+                    sh '''
+                    helm upgrade --install myapp helm/myapp \
+                    --set image.tag=${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
     }
-    success {
-      echo "Pipeline completed successfully!"
+
+    post {
+        always {
+            cleanWs()
+        }
     }
-    failure {
-      echo "Pipeline failed."
-    }
-  }
 }
