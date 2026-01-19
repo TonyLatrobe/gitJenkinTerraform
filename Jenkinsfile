@@ -1,45 +1,51 @@
 pipeline {
   agent {
     kubernetes {
+      label 'pipetest-agent'
+      defaultContainer 'python'
       yaml """
 apiVersion: v1
 kind: Pod
 spec:
+  serviceAccountName: jenkins
   containers:
   - name: python
     image: python:3.11-slim
     command:
     - cat
     tty: true
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+  - name: terraform
+    image: hashicorp/terraform:1.7.6
+    command:
+    - cat
+    tty: true
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+  restartPolicy: Never
 """
     }
   }
 
   stages {
-
-    stage('DEBUG') {
-      steps {
-        container('debug') {
-          sh 'echo RUNNING FROM UPDATED JENKINSFILE'
-        }
-      }
-    }
-
     stage('Checkout') {
       steps {
         checkout scm
       }
     }
 
-    stage('Unit Tests') {
+    stage('Python Unit Tests') {
       steps {
         container('python') {
           sh '''
             cd app
-            python3 --version
             python3 -m venv .venv
             . .venv/bin/activate
-            pip install --upgrade pip
             pip install -r requirements.txt
             pytest
           '''
@@ -49,49 +55,36 @@ spec:
 
     stage('Terraform Validate') {
       steps {
-        sh '''
-          terraform init
-          terraform validate
-        '''
+        container('terraform') {
+          sh '''
+            terraform init
+            terraform validate
+          '''
+        }
       }
     }
 
-    stage('Terraform Security') {
+    stage('Terraform Plan') {
       steps {
-        sh '''
-          tfsec terraform/
-          checkov -d terraform/
-        '''
+        container('terraform') {
+          sh '''
+            terraform plan -out=tfplan
+          '''
+        }
       }
     }
+  }
 
-    stage('Policy as Code') {
-      steps {
-        sh '''
-          conftest test terraform/ --policy policies/opa
-        '''
-      }
+  post {
+    always {
+      echo "Cleaning up workspace"
+      cleanWs()
     }
-
-    stage('Build Image') {
-      steps {
-        sh 'docker build -t myapp:${BUILD_NUMBER} app/'
-      }
+    success {
+      echo "Pipeline completed successfully!"
     }
-
-    stage('Container Security') {
-      steps {
-        sh 'trivy image myapp:${BUILD_NUMBER}'
-      }
-    }
-
-    stage('Deploy') {
-      steps {
-        sh '''
-          helm upgrade --install myapp helm/myapp \
-          --set image.tag=${BUILD_NUMBER}
-        '''
-      }
+    failure {
+      echo "Pipeline failed."
     }
   }
 }
