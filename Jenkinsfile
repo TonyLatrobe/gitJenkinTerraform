@@ -22,9 +22,15 @@ pipeline {
             steps {
                 container('python') {
                     sh '''
-                    echo "Copying CA cert..."
+                    echo "Importing Jenkins CA cert..."
+                    # Copy the ConfigMap-mounted cert to system CA location
                     cp /etc/ssl/certs/jenkins-ca/ca.crt /usr/local/share/ca-certificates/jenkins-ca.crt
                     update-ca-certificates
+
+                    # Also import into Java keystore for Jenkins agent
+                    JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/bin/java::")
+                    keytool -importcert -trustcacerts -file /etc/ssl/certs/jenkins-ca/ca.crt -alias microk8s-ca \
+                        -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -noprompt || true
                     '''
                 }
             }
