@@ -17,7 +17,6 @@ spec:
 
   stages {
 
-  stages {
     stage('DEBUG') {
       steps {
         container('debug') {
