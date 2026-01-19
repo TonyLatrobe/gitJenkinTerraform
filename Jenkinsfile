@@ -1,12 +1,11 @@
 pipeline {
     agent {
         kubernetes {
-            inheritFrom 'pipetest-agent'  // Use the static pod template
+            inheritFrom 'pipetest-agent'
         }
     }
 
     environment {
-        PYTHON_IMAGE = 'python:3.11-slim'
         DOCKER_IMAGE = 'myapp'
     }
 
@@ -14,7 +13,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/TonyLatrobe/gitJenkinTerraform'
+                checkout scm
             }
         }
 
@@ -23,14 +22,11 @@ pipeline {
                 container('python') {
                     sh '''
                     echo "Importing Jenkins CA cert..."
-                    # Copy the ConfigMap-mounted cert to system CA location
-                    cp /etc/ssl/certs/jenkins-ca/ca.crt /usr/local/share/ca-certificates/jenkins-ca.crt
-                    update-ca-certificates
 
-                    # Also import into Java keystore for Jenkins agent
-                    JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:/bin/java::")
-                    keytool -importcert -trustcacerts -file /etc/ssl/certs/jenkins-ca/ca.crt -alias microk8s-ca \
-                        -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -noprompt || true
+                    cp /etc/ssl/certs/jenkins-ca/ca.crt \
+                       /usr/local/share/ca-certificates/jenkins-ca.crt
+
+                    update-ca-certificates || true
                     '''
                 }
             }
@@ -52,7 +48,7 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                container('python') {
+                container('terraform') {
                     sh '''
                     terraform init
                     terraform validate
@@ -63,7 +59,7 @@ pipeline {
 
         stage('Terraform Security') {
             steps {
-                container('python') {
+                container('security') {
                     sh '''
                     tfsec terraform/
                     checkov -d terraform/
@@ -74,7 +70,7 @@ pipeline {
 
         stage('Policy as Code') {
             steps {
-                container('python') {
+                container('security') {
                     sh '''
                     conftest test terraform/ --policy policies/opa
                     '''
@@ -84,26 +80,30 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                container('python') {
-                    sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} app/'
+                container('docker') {
+                    sh '''
+                    docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} app/
+                    '''
                 }
             }
         }
 
         stage('Container Security') {
             steps {
-                container('python') {
-                    sh 'trivy image ${DOCKER_IMAGE}:${BUILD_NUMBER}'
+                container('security') {
+                    sh '''
+                    trivy image ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                    '''
                 }
             }
         }
 
         stage('Deploy') {
             steps {
-                container('python') {
+                container('helm') {
                     sh '''
                     helm upgrade --install myapp helm/myapp \
-                    --set image.tag=${BUILD_NUMBER}
+                      --set image.tag=${BUILD_NUMBER}
                     '''
                 }
             }
