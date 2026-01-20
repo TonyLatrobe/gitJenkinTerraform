@@ -47,15 +47,18 @@ spec:
 
                     # Install requirements while bypassing SSL certificate verification
                     # This fixes the TLSV1_ALERT_INTERNAL_ERROR in restricted networks
+                    # Force HTTP to bypass the broken TLS/SSL handshake
+                    # We use the simple index over HTTP
                     pip install --upgrade pip \
-                        --trusted-host pypi.org \
-                        --trusted-host files.pythonhosted.org \
-                        --trusted-host pypi.python.org
+                        --index-url http://pypi.org \
+                        --trusted-host pypi.org
 
                     pip install -r requirements.txt \
+                        --index-url http://pypi.org \
                         --trusted-host pypi.org \
-                        --trusted-host files.pythonhosted.org \
-                        --trusted-host pypi.python.org
+                        --trusted-host files.pythonhosted.org
+                
+           
 
                     # Run tests
                     pytest
