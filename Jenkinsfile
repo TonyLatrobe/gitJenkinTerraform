@@ -37,21 +37,27 @@ spec:
             steps {
                 container('python') {
                     sh '''
-                    # Ensure we are in the correct directory
-                    ls -R app # Debug: See what files actually exist
-                    
+                                       # Navigate to app directory and clear previous attempts
                     cd app
-                    
-                    # Remove any existing broken venv
                     rm -rf .venv
-                    
-                    # Create the venv
+
+                    # Create virtual environment
                     python3 -m venv .venv
-                    
-                    # Activate and install
                     . .venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+
+                    # Install requirements while bypassing SSL certificate verification
+                    # This fixes the TLSV1_ALERT_INTERNAL_ERROR in restricted networks
+                    pip install --upgrade pip \
+                        --trusted-host pypi.org \
+                        --trusted-host files.pythonhosted.org \
+                        --trusted-host pypi.python.org
+
+                    pip install -r requirements.txt \
+                        --trusted-host pypi.org \
+                        --trusted-host files.pythonhosted.org \
+                        --trusted-host pypi.python.org
+
+                    # Run tests
                     pytest
                     '''
                 }
