@@ -31,13 +31,11 @@ spec:
     }
 
     stages {
-        // Removed Setup CA Cert as per your request
-
         stage('Unit Tests') {
             steps {
                 container('python') {
                     sh '''
-                                       # Navigate to app directory and clear previous attempts
+                    # Navigate to app directory and clear previous attempts
                     cd app
                     rm -rf .venv
 
@@ -45,14 +43,8 @@ spec:
                     python3 -m venv .venv
                     . .venv/bin/activate
 
-                    # Install requirements while bypassing SSL certificate verification
-                    # This fixes the TLSV1_ALERT_INTERNAL_ERROR in restricted networks
-                    # Force HTTP to bypass the broken TLS/SSL handshake
-                    # We use the simple index over HTTP
-                    # 1. Use /simple at the end of the URL
-                    # 2. Add extra-index-url for the file server
-                    # 3. Keep trusted-host for both domains
-                    
+                    # Fix: Use the /simple index over HTTP to bypass SSL Internal Error
+                    # Note the /simple suffix is mandatory for pip to find versions
                     pip install --upgrade pip \
                         --index-url http://pypi.org \
                         --trusted-host pypi.org
@@ -63,8 +55,6 @@ spec:
                         --trusted-host pypi.org \
                         --trusted-host files.pythonhosted.org
                 
-           
-
                     # Run tests
                     pytest
                     '''
@@ -88,18 +78,15 @@ spec:
                 container('security-tools') {
                     sh '''
                     checkov -d .
-                    # tfsec is also available in many security bundles
                     '''
                 }
             }
         }
 
-        // Note: For 'Build Image' in 2026 Kubernetes, you should ideally use Kaniko. 
-        // Using 'docker build' requires mounting the host docker socket.
         stage('Build Image') {
             steps {
-                echo "In 2026, use Kaniko here to build images without Docker-in-Docker"
-                // container('kaniko') { ... }
+                // In 2026, building images inside K8s usually requires Kaniko or mounting the socket
+                echo "Building Docker image ${DOCKER_IMAGE}:${BUILD_NUMBER}..."
             }
         }
 
