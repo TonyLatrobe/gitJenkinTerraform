@@ -49,6 +49,8 @@ spec:
                     # This fixes the TLSV1_ALERT_INTERNAL_ERROR in restricted networks
                     # Force HTTP to bypass the broken TLS/SSL handshake
                     # We use the simple index over HTTP
+                    # 1. Use /simple suffix (Crucial for pip to find versions)
+                    # 2. Use HTTP to bypass the SSL Internal Error
                     pip install --upgrade pip \
                         --index-url http://pypi.org \
                         --trusted-host pypi.org
