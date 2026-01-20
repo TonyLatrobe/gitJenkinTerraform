@@ -13,11 +13,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                //git url: 'https://github.com/TonyLatrobe/gitJenkinTerraform'
-            }
-        }
 
         stage('Setup CA Cert') {
             steps {
