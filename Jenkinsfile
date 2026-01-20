@@ -37,9 +37,20 @@ spec:
             steps {
                 container('python') {
                     sh '''
+                    # Ensure we are in the correct directory
+                    ls -R app # Debug: See what files actually exist
+                    
                     cd app
+                    
+                    # Remove any existing broken venv
+                    rm -rf .venv
+                    
+                    # Create the venv
                     python3 -m venv .venv
+                    
+                    # Activate and install
                     . .venv/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
                     pytest
                     '''
