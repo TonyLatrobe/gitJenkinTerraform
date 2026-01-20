@@ -39,22 +39,19 @@ spec:
                     cd app
                     rm -rf .venv
 
-                    # Create virtual environment
                     python3 -m venv .venv
                     . .venv/bin/activate
 
-                    # Fix: Use the /simple index over HTTP to bypass SSL Internal Error
-                    # Note the /simple suffix is mandatory for pip to find versions
                     pip install --upgrade pip \
-                        --index-url http://pypi.org \
-                        --trusted-host pypi.org
+                    --index-url http://pypi.org/simple \
+                    --trusted-host pypi.org
 
                     pip install -r requirements.txt \
-                        --index-url http://pypi.org \
-                        --extra-index-url http://files.pythonhosted.org \
-                        --trusted-host pypi.org \
-                        --trusted-host files.pythonhosted.org
-                
+                    --index-url http://pypi.org/simple \
+                    --extra-index-url http://files.pythonhosted.org/simple \
+                    --trusted-host pypi.org \
+                    --trusted-host files.pythonhosted.org
+                    
                     # Run tests
                     pytest
                     '''
