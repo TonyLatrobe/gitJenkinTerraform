@@ -15,7 +15,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/TonyLatrobe/gitJenkinTerraform'
+                //git url: 'https://github.com/TonyLatrobe/gitJenkinTerraform'
             }
         }
 
