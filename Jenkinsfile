@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: python
-    image: python:3.11-slim
+    image: python:3.11 
     command: ["cat"]
     tty: true
   - name: terraform
@@ -51,7 +51,7 @@ spec:
                     --extra-index-url http://files.pythonhosted.org/simple \
                     --trusted-host pypi.org \
                     --trusted-host files.pythonhosted.org
-                    
+
                     # Run tests
                     pytest
                     '''
