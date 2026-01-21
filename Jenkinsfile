@@ -42,6 +42,13 @@ spec:
                     python3 -m venv .venv
                     . .venv/bin/activate
 
+                    #install update + Certificates + openSSL (as some images have missing files)
+                    apt-get update && apt-get install -y \
+                    ca-certificates \
+                    openssl \
+                    libssl-dev \
+                    && update-ca-certificates
+
                     # --- Permanent SSL fix for Ubuntu ---
                     export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
                     export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
