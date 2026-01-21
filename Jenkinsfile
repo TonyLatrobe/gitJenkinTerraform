@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: python 
-    image: python:3.12
+    image: python:3.14
     command: ["cat"]
     tty: true
   - name: terraform
