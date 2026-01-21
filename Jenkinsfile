@@ -6,7 +6,7 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: python
+  - name: python 
     image: python:3.11 
     command: ["cat"]
     tty: true
