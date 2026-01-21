@@ -6,7 +6,7 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: python 
+  - name: python
     image: python:3.12
     command: ["cat"]
     tty: true
@@ -31,23 +31,33 @@ spec:
     }
 
     stages {
+
         stage('Unit Tests') {
             steps {
                 container('python') {
                     sh '''
+                        cd $WORKSPACE
+
+                        # Ensure CA certificates
+                        apt-get update && apt-get install -y ca-certificates
+
+                        # Create and activate virtual environment
                         python3 -m venv .venv
-                        # Use dot (.) instead of source for POSIX sh
                         . .venv/bin/activate
 
-                        # Ensure system CA certificates are used
+                        # Use system CA certificates
                         export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
                         export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
                         # Upgrade pip
                         pip install --upgrade pip
 
-                        # Install project requirements
-                        pip install -r requirements.txt
+                        # Install requirements if present
+                        if [ -f requirements.txt ]; then
+                            pip install -r requirements.txt
+                        else
+                            echo "No requirements.txt found, skipping pip install"
+                        fi
                     '''
                 }
             }
@@ -96,13 +106,10 @@ spec:
         always {
             container('python') {
                 sh '''
-                    # Clean previous virtual environment
-                    rm -rf app/.venv
-
-                    # Recreate venv
-                    python3 -m venv app/.venv
-                    . app/.venv/bin/activate
-
+                    cd $WORKSPACE || exit 0
+                    rm -rf .venv
+                    python3 -m venv .venv
+                    . .venv/bin/activate
                     echo "Cleanup and venv reset complete."
                 '''
             }
