@@ -32,23 +32,24 @@ spec:
 
     stages {
         stage('Unit Tests') {
-                   script {
-            // Create virtual environment
-            sh '''
-                python3 -m venv .venv
-                source .venv/bin/activate
+                script {
+                    steps {
+                        container('python') {
+                            sh '''
+                            python3 -m venv .venv
+                            source .venv/bin/activate
 
-                # Ensure system CA certificates are used
-                export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-                export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+                            # Ensure system CA certificates are used
+                            export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+                            export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-                # Upgrade pip (already works with latest Python)
-                pip install --upgrade pip
+                            # Upgrade pip (latest Python already works)
+                            pip install --upgrade pip
 
-                # Install project requirements
-                pip install -r requirements.txt
-            '''
-            }
+                            # Install project requirements
+                            pip install -r requirements.txt
+                            '''
+                }
             }
         }
 
