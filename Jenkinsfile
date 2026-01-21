@@ -10,6 +10,8 @@ spec:
     image: python:3.12
     command: ["cat"]
     tty: true
+    securityContext:
+      privileged: false 
   - name: terraform
     image: hashicorp/terraform:latest
     command: ["cat"]
@@ -26,45 +28,36 @@ spec:
         }
     }
 
-    environment {
-        DOCKER_IMAGE = 'myapp'
-    }
-
     stages {
         stage('Unit Tests') {
             steps {
                 container('python') {
                     sh '''
-                        # 1. Address potential OpenSSL Handshake strictness
-                        cat > /tmp/openssl.cnf <<EOF
-openssl_conf = default_conf
-[default_conf]
-ssl_conf = ssl_sect
-[ssl_sect]
-system_default = system_default_sect
-[system_default_sect]
-CipherString = DEFAULT@SECLEVEL=1
-EOF
-                        export OPENSSL_CONF=/tmp/openssl.cnf
+                        # 1. Force a much lower MTU for the session if possible
+                        # If this fails due to permissions, we rely on the pip flags below
+                        ip link set dev eth0 mtu 1300 || echo "Could not change MTU, proceeding..."
 
-                        # 2. Setup Virtual Environment
+                        # 2. Setup Virtual Env
                         python3 -m venv .venv
                         . .venv/bin/activate
 
-                        # 3. Upgrade pip with trusted-host flags
+                        # 3. Targeted Pip Install
+                        # We use --timeout to handle the hanging handshake
+                        # and --trusted-host to prevent the 'internal error' from blocking
                         pip install --upgrade pip \
+                            --timeout 30 \
+                            --retries 3 \
                             --trusted-host pypi.org \
                             --trusted-host files.pythonhosted.org \
                             --trusted-host pypi.python.org
 
-                        # 4. Install requirements
                         if [ -f requirements.txt ]; then
                             pip install -r requirements.txt \
                                 --trusted-host pypi.org \
                                 --trusted-host files.pythonhosted.org \
                                 --trusted-host pypi.python.org
                         else
-                            echo "No requirements.txt found, skipping pip install"
+                            echo "No requirements.txt found."
                         fi
                     '''
                 }
@@ -74,10 +67,7 @@ EOF
         stage('Terraform Validate') {
             steps {
                 container('terraform') {
-                    sh '''
-                        terraform init
-                        terraform validate
-                    '''
+                    sh 'terraform init && terraform validate'
                 }
             }
         }
@@ -87,13 +77,6 @@ EOF
                 container('security-tools') {
                     sh 'checkov -d .'
                 }
-            }
-        }
-
-        stage('Build Image') {
-            steps {
-                echo "Building Docker image ${DOCKER_IMAGE}:${BUILD_NUMBER}..."
-                // Note: Building docker images inside K8s usually requires Kaniko or DinD
             }
         }
 
@@ -108,9 +91,6 @@ EOF
 
     post {
         always {
-            container('python') {
-                sh 'rm -rf .venv'
-            }
             cleanWs()
         }
     }
