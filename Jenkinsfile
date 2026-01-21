@@ -32,34 +32,23 @@ spec:
 
     stages {
         stage('Unit Tests') {
-            steps {
-                container('python') {
-                    sh '''
-                    # Navigate to app directory and clear previous attempts
-                    cd app
-                    rm -rf .venv
+                   script {
+            // Create virtual environment
+            sh '''
+                python3 -m venv .venv
+                source .venv/bin/activate
 
-                    python3 -m venv .venv
-                    . .venv/bin/activate
+                # Ensure system CA certificates are used
+                export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+                export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-                    #install update + Certificates + openSSL (as some images have missing files)
-                    apt-get update && apt-get install -y \
-                    ca-certificates \
-                    openssl \
-                    libssl-dev \
-                    && update-ca-certificates
+                # Upgrade pip (already works with latest Python)
+                pip install --upgrade pip
 
-                    # --- Permanent SSL fix for Ubuntu ---
-                    export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-                    export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-
-                    # Upgrade pip & certifi inside venv
-                    pip install --upgrade pip certifi
-
-                    # Run tests
-                    pytest
-                    '''
-                }
+                # Install project requirements
+                pip install -r requirements.txt
+            '''
+            }
             }
         }
 
@@ -105,7 +94,17 @@ spec:
 
     post {
         always {
-            cleanWs()
+            cleanWs() steps {
+                container('python') {
+                    sh '''
+                    # Navigate to app directory and clear previous attempts
+                    cd app
+                    rm -rf .venv
+
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+
+                    #in
         }
     }
 }
