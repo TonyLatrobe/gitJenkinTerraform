@@ -36,13 +36,14 @@ spec:
                 container('python') {
                     sh '''
                         python3 -m venv .venv
-                        source .venv/bin/activate
+                        # Use dot (.) instead of source for POSIX sh
+                        . .venv/bin/activate
 
                         # Ensure system CA certificates are used
                         export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
                         export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-                        # Upgrade pip (latest Python already works)
+                        # Upgrade pip
                         pip install --upgrade pip
 
                         # Install project requirements
@@ -95,12 +96,12 @@ spec:
         always {
             container('python') {
                 sh '''
-                    # Clean previous virtual environments
+                    # Clean previous virtual environment
                     rm -rf app/.venv
 
                     # Recreate venv
                     python3 -m venv app/.venv
-                    source app/.venv/bin/activate
+                    . app/.venv/bin/activate
 
                     echo "Cleanup and venv reset complete."
                 '''
