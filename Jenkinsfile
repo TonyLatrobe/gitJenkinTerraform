@@ -7,7 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: python 
-    image: python:3.11 
+    image: python:3.11-slim 
     command: ["cat"]
     tty: true
   - name: terraform
@@ -43,14 +43,10 @@ spec:
                     . .venv/bin/activate
 
                     pip install --upgrade pip \
-                    --index-url http://pypi.org/simple \
-                    --trusted-host pypi.org
+                    --index-url https://pypi.org/simple
 
                     pip install -r requirements.txt \
-                    --index-url http://pypi.org/simple \
-                    --extra-index-url http://files.pythonhosted.org/simple \
-                    --trusted-host pypi.org \
-                    --trusted-host files.pythonhosted.org
+                    --index-url https://pypi.org/simple
 
                     # Run tests
                     pytest
