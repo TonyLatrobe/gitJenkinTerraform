@@ -42,11 +42,12 @@ spec:
                     python3 -m venv .venv
                     . .venv/bin/activate
 
-                    pip install --upgrade pip \
-                    --index-url https://pypi.org/simple
+                    # --- Permanent SSL fix for Ubuntu ---
+                    export SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+                    export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
-                    pip install -r requirements.txt \
-                    --index-url https://pypi.org/simple
+                    # Upgrade pip & certifi inside venv
+                    pip install --upgrade pip certifi
 
                     # Run tests
                     pytest
