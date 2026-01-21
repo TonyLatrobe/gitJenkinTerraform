@@ -31,7 +31,7 @@ spec:
     }
 
     stages {
-
+        //This Stage: Unit Tests is passing
         stage('Unit Tests') {
             steps {
                 container('python') {
@@ -62,7 +62,7 @@ spec:
                 }
             }
         }
-
+        //This Stage: Terraform Validate is passing
         stage('Terraform Validate') {
             steps {
                 container('terraform') {
@@ -73,7 +73,7 @@ spec:
                 }
             }
         }
-
+        //This stage is failing :(
         stage('Terraform Security') {
             steps {
                 container('security-tools') {
