@@ -5,13 +5,13 @@ metadata:
 spec:
   selector:
     app: jenkins
-  type: ClusterIP
+  type: NodePort
   ports:
-    - protocol: TCP
+    - name: http
       port: 8080
       targetPort: 8080
-      name: http
-    - protocol: TCP
+      nodePort: 32043       # your existing NodePort
+    - name: jnlp
       port: 50000
       targetPort: 50000
-      name: jnlp
+      nodePort: 32044       # pick a free NodePort
