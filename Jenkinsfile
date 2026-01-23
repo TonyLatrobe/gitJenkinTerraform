@@ -17,30 +17,33 @@ spec:
       - 1.1.1.1
 
   containers:
+    - name: jnlp
+      image: jenkins/inbound-agent:latest
+      args:
+        - "\$(JENKINS_SECRET)"
+        - "\$(JENKINS_NAME)"
+      tty: true
+
     - name: python
       image: python:3.12
-      command:
-        - "cat"
+      command: ["cat"]
       tty: true
       securityContext:
         privileged: false
 
     - name: terraform
       image: hashicorp/terraform:latest
-      command:
-        - "cat"
+      command: ["cat"]
       tty: true
 
     - name: security-tools
       image: bridgecrew/checkov:latest
-      command:
-        - "cat"
+      command: ["cat"]
       tty: true
 
     - name: deploy-tools
       image: alpine/helm:latest
-      command:
-        - "cat"
+      command: ["cat"]
       tty: true
 '''
         }
