@@ -4,37 +4,64 @@ pipeline {
             yaml '''
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    jenkins: "agent"
+
 spec:
+  serviceAccountName: jenkins
+  dnsPolicy: ClusterFirst
+  dnsConfig:
+    nameservers:
+      - 10.152.183.10
+
+  securityContext:
+    sysctls:
+      - name: net.ipv6.conf.all.disable_ipv6
+        value: "1"
+      - name: net.ipv6.conf.default.disable_ipv6
+        value: "1"
+
   containers:
-  - name: python
-    image: ubuntu:22.04
-    command: ["cat"]
-    tty: true
-    securityContext:
-      privileged: false 
-  - name: terraform
-    image: hashicorp/terraform:latest
-    command: ["cat"]
-    tty: true
-  - name: security-tools
-    image: bridgecrew/checkov:latest
-    command: ["cat"]
-    tty: true
-  - name: deploy-tools
-    image: alpine/helm:latest
-    command: ["cat"]
-    tty: true
+    - name: jnlp
+      image: jenkins/inbound-agent:latest
+      args:
+        - "\$(JENKINS_SECRET)"
+        - "\$(JENKINS_NAME)"
+      tty: true
+
+    - name: python
+      image: python:3.12
+      command: ["cat"]
+      tty: true
+      securityContext:
+        privileged: false
+
+    - name: terraform
+      image: hashicorp/terraform:latest
+      command: ["cat"]
+      tty: true
+
+    - name: security-tools
+      image: bridgecrew/checkov:latest
+      command: ["cat"]
+      tty: true
+
+    - name: deploy-tools
+      image: alpine/helm:latest
+      command: ["cat"]
+      tty: true
 '''
         }
     }
 
     stages {
+
         stage('Unit Tests') {
             steps {
                 container('python') {
                     sh '''
-                        # Update OS and install python3 + pip + common tools
-                        apt-get update && apt-get install -y python3 python3-venv python3-pip curl iputils-ping dnsutils
+                        # Python image already includes python3 and pip
 
                         # Setup virtual environment
                         python3 -m venv .venv
@@ -56,7 +83,10 @@ spec:
         stage('Terraform Validate') {
             steps {
                 container('terraform') {
-                    sh 'terraform init && terraform validate'
+                    sh '''
+                        terraform init
+                        terraform validate
+                    '''
                 }
             }
         }
