@@ -12,17 +12,15 @@ spec:
       - 1.1.1.1
   containers:
   - name: python
-    image: python:3.12.3-slim
+    image: python:3.12-slim
     command: ["cat"]
     tty: true
-    securityContext:
-      privileged: false
   - name: terraform
     image: hashicorp/terraform:1.14.1
     command: ["cat"]
     tty: true
   - name: security-tools
-    image: bridgecrew/checkov:3.2.483
+    image: bridgecrew/checkov:latest
     command: ["cat"]
     tty: true
   - name: deploy-tools
