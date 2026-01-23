@@ -106,3 +106,79 @@ spec:
         }
     }
 }
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: python
+      image: pytest/pytest:latest
+      command: ["cat"]
+      tty: true
+      securityContext:
+        privileged: false
+
+    - name: terraform
+      image: hashicorp/terraform:latest
+      command: ["cat"]
+      tty: true
+
+    - name: security-tools
+      image: bridgecrew/checkov:latest
+      command: ["cat"]
+      tty: true
+
+    - name: deploy-tools
+      image: alpine/helm:latest
+      command: ["cat"]
+      tty: true
+'''
+        }
+    }
+
+    stages {
+        stage('Unit Tests') {
+            steps {
+                container('python') {
+                    sh '''
+                        # pytest is already installed in this image
+                        pytest
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                container('terraform') {
+                    sh 'terraform init && terraform validate'
+                }
+            }
+        }
+
+        stage('Terraform Security') {
+            steps {
+                container('security-tools') {
+                    sh 'checkov -d .'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                container('deploy-tools') {
+                    sh "helm upgrade --install myapp helm/myapp --set image.tag=${BUILD_NUMBER}"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
