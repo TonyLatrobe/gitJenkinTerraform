@@ -24,7 +24,7 @@ spec:
       tty: true
 
     - name: python
-      image: python:3.12
+      image: ubuntu:22.04
       command: ["cat"]
       tty: true
       securityContext:
