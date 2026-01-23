@@ -12,21 +12,25 @@ spec:
       - 1.1.1.1
   containers:
   - name: python
-    image: python:3.12-slim
+    image: python:3.12-slim-bullseye
     command: ["cat"]
     tty: true
+    stdin: true
   - name: terraform
-    image: hashicorp/terraform:1.14.1
+    image: hashicorp/terraform:1.6.8
     command: ["cat"]
     tty: true
+    stdin: true
   - name: security-tools
-    image: bridgecrew/checkov:latest
+    image: bridgecrew/checkov:2.0.168
     command: ["cat"]
     tty: true
+    stdin: true
   - name: deploy-tools
-    image: alpine/helm:3.14.2
+    image: alpine/helm:3.14.3
     command: ["cat"]
     tty: true
+    stdin: true
 '''
         }
     }
@@ -45,7 +49,6 @@ spec:
                             --trusted-host pypi.org \
                             --trusted-host files.pythonhosted.org \
                             --trusted-host pypi.python.org
-
                         if [ -f requirements.txt ]; then
                             pip install -r requirements.txt \
                                 --trusted-host pypi.org \
