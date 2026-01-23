@@ -34,8 +34,6 @@ spec:
       image: python:3.12
       command: ["cat"]
       tty: true
-      securityContext:
-        privileged: false
 
     - name: terraform
       image: hashicorp/terraform:latest
@@ -61,13 +59,9 @@ spec:
             steps {
                 container('python') {
                     sh '''
-                        # Python image already includes python3 and pip
-
-                        # Setup virtual environment
                         python3 -m venv .venv
                         . .venv/bin/activate
 
-                        # Upgrade pip and install requirements
                         pip install --upgrade pip setuptools wheel
 
                         if [ -f requirements.txt ]; then
