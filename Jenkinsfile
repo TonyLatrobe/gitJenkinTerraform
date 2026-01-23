@@ -5,28 +5,38 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  dnsPolicy: Default
+  dnsConfig:
+    nameservers:
+      - 8.8.8.8
+      - 1.1.1.1
+
   containers:
-  - name: python
-    image: python:3.12
-    command: ["cat"]
-    tty: true
-    securityContext:
-      privileged: false 
-  - name: terraform
-    image: hashicorp/terraform:latest
-    command: ["cat"]
-    tty: true
-  - name: security-tools
-    image: bridgecrew/checkov:latest
-    command: ["cat"]
-    tty: true
-  - name: deploy-tools
-    image: alpine/helm:latest
-    command: ["cat"]
-    tty: true
+    - name: python
+      image: python:3.12
+      command: ["cat"]
+      tty: true
+      securityContext:
+        privileged: false
+
+    - name: terraform
+      image: hashicorp/terraform:latest
+      command: ["cat"]
+      tty: true
+
+    - name: security-tools
+      image: bridgecrew/checkov:latest
+      command: ["cat"]
+      tty: true
+
+    - name: deploy-tools
+      image: alpine/helm:latest
+      command: ["cat"]
+      tty: true
 '''
         }
     }
+
 
     stages {
         stage('Unit Tests') {
