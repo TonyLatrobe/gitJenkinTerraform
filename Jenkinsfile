@@ -11,9 +11,6 @@ metadata:
 spec:
   serviceAccountName: jenkins
   dnsPolicy: ClusterFirst
-  dnsConfig:
-    nameservers:
-      - 10.152.183.10
 
   securityContext:
     sysctls:
@@ -24,16 +21,18 @@ spec:
 
   containers:
     - name: jnlp
-      image: jenkins/inbound-agent:latest
+      image: jenkins/inbound-agent:3206.vb_15dcf73f6a_9-1
       args:
-        - "\$(JENKINS_SECRET)"
-        - "\$(JENKINS_NAME)"
+        - "$(JENKINS_SECRET)"
+        - "$(JENKINS_NAME)"
       tty: true
 
     - name: python
       image: python:3.12
       command: ["cat"]
       tty: true
+      securityContext:
+        privileged: false
 
     - name: terraform
       image: hashicorp/terraform:latest
@@ -54,7 +53,6 @@ spec:
     }
 
     stages {
-
         stage('Unit Tests') {
             steps {
                 container('python') {
