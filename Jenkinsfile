@@ -13,8 +13,7 @@ spec:
   dnsPolicy: ClusterFirst
   dnsConfig:
     nameservers:
-      - 8.8.8.8
-      - 1.1.1.1
+      - 10.152.183.10
 
   containers:
     - name: jnlp
