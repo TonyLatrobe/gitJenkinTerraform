@@ -12,7 +12,7 @@ spec:
       labels:
         app: jenkins
     spec:
-      # This makes the PVC writable by Jenkins user
+      serviceAccountName: jenkins   # ← ADD THIS
       securityContext:
         fsGroup: 1000
       containers:
@@ -23,7 +23,13 @@ spec:
           volumeMounts:
             - name: jenkins-data
               mountPath: /var/jenkins_home
+            - name: k8s-ca               # ← ADD THIS
+              mountPath: /var/run/secrets/kubernetes.io/ca
+              readOnly: true
       volumes:
         - name: jenkins-data
           persistentVolumeClaim:
             claimName: jenkins-pvc
+        - name: k8s-ca                  # ← ADD THIS
+          configMap:
+            name: jenkins-ca-cert
