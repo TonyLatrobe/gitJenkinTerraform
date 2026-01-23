@@ -9,8 +9,8 @@ metadata:
     jenkins: "agent"
 
 spec:
-  serviceAccountName: default
-  dnsPolicy: Default
+  serviceAccountName: jenkins
+  dnsPolicy: ClusterFirst
   dnsConfig:
     nameservers:
       - 8.8.8.8
