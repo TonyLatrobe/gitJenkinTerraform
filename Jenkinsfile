@@ -10,21 +10,18 @@ metadata:
 
 spec:
   serviceAccountName: jenkins
-  dnsPolicy: ClusterFirst
 
-  securityContext:
-    sysctls:
-      - name: net.ipv6.conf.all.disable_ipv6
-        value: "1"
-      - name: net.ipv6.conf.default.disable_ipv6
-        value: "1"
+  dnsPolicy: ClusterFirst
+  dnsConfig:
+    nameservers:
+      - 10.152.183.10   # MicroK8s CoreDNS
 
   containers:
     - name: jnlp
-      image: jenkins/inbound-agent:3206.vb_15dcf73f6a_9-1
+      image: jenkins/inbound-agent:latest
       args:
-        - "$(JENKINS_SECRET)"
-        - "$(JENKINS_NAME)"
+        - "\$(JENKINS_SECRET)"
+        - "\$(JENKINS_NAME)"
       tty: true
 
     - name: python
@@ -53,10 +50,13 @@ spec:
     }
 
     stages {
+
         stage('Unit Tests') {
             steps {
                 container('python') {
                     sh '''
+                        # Python image already includes python3 and pip
+
                         python3 -m venv .venv
                         . .venv/bin/activate
 
