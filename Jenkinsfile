@@ -12,25 +12,23 @@ spec:
       - 1.1.1.1
   containers:
   - name: python
-    image: python:3.12-slim-bullseye
+    image: python:3.12
     command: ["cat"]
     tty: true
-    stdin: true
+    securityContext:
+      privileged: false 
   - name: terraform
-    image: hashicorp/terraform:1.6.8
+    image: hashicorp/terraform:latest
     command: ["cat"]
     tty: true
-    stdin: true
   - name: security-tools
-    image: bridgecrew/checkov:2.0.168
+    image: bridgecrew/checkov:latest
     command: ["cat"]
     tty: true
-    stdin: true
   - name: deploy-tools
-    image: alpine/helm:3.14.3
+    image: alpine/helm:latest
     command: ["cat"]
     tty: true
-    stdin: true
 '''
         }
     }
@@ -40,15 +38,24 @@ spec:
             steps {
                 container('python') {
                     sh '''
+                        # 1. Force a much lower MTU for the session if possible
+                        # If this fails due to permissions, we rely on the pip flags below
                         ip link set dev eth0 mtu 1300 || echo "Could not change MTU, proceeding..."
+
+                        # 2. Setup Virtual Env
                         python3 -m venv .venv
                         . .venv/bin/activate
+
+                        # 3. Targeted Pip Install
+                        # We use --timeout to handle the hanging handshake
+                        # and --trusted-host to prevent the 'internal error' from blocking
                         pip install --upgrade pip \
                             --timeout 30 \
                             --retries 3 \
                             --trusted-host pypi.org \
                             --trusted-host files.pythonhosted.org \
                             --trusted-host pypi.python.org
+
                         if [ -f requirements.txt ]; then
                             pip install -r requirements.txt \
                                 --trusted-host pypi.org \
