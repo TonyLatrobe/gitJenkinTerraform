@@ -1,0 +1,23 @@
+FROM python:3.12-slim
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install OS dependencies (add more if needed later)
+RUN apt-get update && apt-get install -y \
+    bash \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip tooling
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# Optional: preinstall pytest (useful for your second pipeline)
+RUN pip install pytest
+
+# Set a working directory
+WORKDIR /workspace
+
+# Jenkins/K8s expects the container to stay alive
+CMD ["cat"]
