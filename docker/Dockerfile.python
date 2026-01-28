@@ -1,23 +1,23 @@
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Avoid interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
+# Create a non-root user and group
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Install OS dependencies (add more if needed later)
-RUN apt-get update && apt-get install -y \
-    bash \
-    git \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Upgrade pip tooling
-RUN python -m pip install --upgrade pip setuptools wheel
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Optional: preinstall pytest (useful for your second pipeline)
-RUN pip install pytest
+# Copy application source
+COPY src/ src/
 
-# Set a working directory
-WORKDIR /workspace
+# Switch to non-root user
+USER appuser
 
-# Jenkins/K8s expects the container to stay alive
-CMD ["cat"]
+# Set a default command
+CMD ["python", "src/main.py"]
+
+# Add a basic HEALTHCHECK
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD pgrep -f "python src/main.py" || exit 1
