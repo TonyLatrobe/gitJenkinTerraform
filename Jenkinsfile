@@ -96,11 +96,14 @@ pipeline {
       }
       steps {
         container('deploy-tools') {
-          // Checkout the repo in this pod to ensure helm/myapp exists
-          checkout scm
           sh '''
+            # Create Helm directories for temp config
             mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
-            ls -l ${WORKSPACE}  # debug: verify helm/myapp exists
+
+            # Debug: verify Helm chart exists
+            ls -l ${WORKSPACE}/helm/myapp
+
+            # Install or upgrade Helm release
             helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
               --set image.tag=${BUILD_NUMBER} \
               --rollback-on-failure \
@@ -111,8 +114,7 @@ pipeline {
       }
       post {
         always {
-          // Do not deleteDir here, we want helm/myapp to remain in workspace
-          echo "Skipping deleteDir to preserve Helm chart for Deploy stage"
+          deleteDir()
         }
       }
     }
