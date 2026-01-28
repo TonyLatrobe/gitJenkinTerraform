@@ -53,7 +53,6 @@ pipeline {
           sh '''
             set +e
             checkov -d . -o json > checkov.json
-            EXIT_CODE=$?
 
             TOTAL=$(jq '.summary.total_checks' checkov.json)
             FAILED=$(jq '.summary.failed' checkov.json)
@@ -90,9 +89,17 @@ pipeline {
           yamlFile 'jenkins/pod-templates/deploy.yaml'
         }
       }
+      environment {
+        HELM_CACHE_HOME  = '/tmp/helm/cache'
+        HELM_CONFIG_HOME = '/tmp/helm/config'
+        HELM_DATA_HOME   = '/tmp/helm/data'
+      }
       steps {
         container('deploy-tools') {
-          sh "helm upgrade --install myapp helm/myapp --set image.tag=${BUILD_NUMBER}"
+          sh '''
+            mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
+            helm upgrade --install myapp helm/myapp --set image.tag=${BUILD_NUMBER}
+          '''
         }
       }
       post {
