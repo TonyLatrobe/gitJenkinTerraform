@@ -8,6 +8,6 @@ spec:
     
   containers:
     - name: deploy-tools
-      image: bitnami/helm:3.14.0
+      image: alpine/helm:4
       command: ["cat"]
       tty: true
