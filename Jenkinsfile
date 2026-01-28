@@ -98,7 +98,11 @@ pipeline {
         container('deploy-tools') {
           sh '''
             mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
-            helm upgrade --install myapp helm/myapp --set image.tag=${BUILD_NUMBER}
+            helm upgrade --install myapp ./helm/myapp \
+              --set image.tag=${BUILD_NUMBER} \
+              --atomic \
+              --wait \
+              --timeout 5m
           '''
         }
       }
