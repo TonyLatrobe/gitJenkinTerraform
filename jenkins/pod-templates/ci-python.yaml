@@ -3,26 +3,22 @@ kind: Pod
 spec:
   containers:
     - name: python
-      image: localhost:5000/jenkins/python-ci:3.12
+      image: localhost:32000/jenkins/python-ci:3.12
       imagePullPolicy: IfNotPresent
-      command:
-        - cat
+      command: ["cat"]
       tty: true
 
     - name: terraform
       image: hashicorp/terraform:1.6
-      command:
-        - cat
+      command: ["cat"]
       tty: true
 
     - name: security-tools
       image: bridgecrew/checkov:latest
-      command:
-        - cat
+      command: ["cat"]
       tty: true
 
     - name: deploy-tools
-      image: alpine/helm:3.14
-      command:
-        - cat
+      image: bitnami/helm:3.14
+      command: ["cat"]
       tty: true
