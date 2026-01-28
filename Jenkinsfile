@@ -96,11 +96,13 @@ pipeline {
       }
       steps {
         container('deploy-tools') {
+          // Ensure Helm chart exists in workspace
+          checkout scm
           sh '''
             mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
-            helm upgrade --install myapp ./helm/myapp \
+            helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
               --set image.tag=${BUILD_NUMBER} \
-              --atomic \
+              --rollback-on-failure \
               --wait \
               --timeout 5m
           '''
