@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: python
+      image: localhost:32000/jenkins/python-ci:3.12
+      imagePullPolicy: IfNotPresent
+      command: ["cat"]
+      tty: true

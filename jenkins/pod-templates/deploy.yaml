@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - name: deploy-tools
+      image: bitnami/helm:3.14.0
+      command: ["cat"]
+      tty: true
