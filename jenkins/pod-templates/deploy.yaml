@@ -4,6 +4,9 @@ metadata:
   labels:
     app: jenkins-deploy
 spec:
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
   containers:
     - name: dind
       image: docker:26-dind
