@@ -8,7 +8,8 @@ spec:
     - name: dind
       image: docker:26-dind
       securityContext:
-        privileged: true
+        runAsUser: 1000       # Jenkins user inside the container
+        fsGroup: 1000         # group for mounted volumes
       env:
         - name: DOCKER_TLS_CERTDIR
           value: ""

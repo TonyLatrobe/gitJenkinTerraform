@@ -94,7 +94,6 @@ pipeline {
         HELM_CACHE_HOME  = '/tmp/helm/cache'
         HELM_CONFIG_HOME = '/tmp/helm/config'
         HELM_DATA_HOME   = '/tmp/helm/data'
-        DOCKER_HOST      = 'tcp://localhost:2375'
       }
 
       steps {
