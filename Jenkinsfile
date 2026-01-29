@@ -123,14 +123,13 @@ pipeline {
                 --set image.pullPolicy=IfNotPresent
             '''
           }
+          post {
+            always {
+              deleteDir()
+            }
+          }
         }
 
-      }
-
-      post {
-        always {
-          deleteDir()
-        }
       }
     }
 
