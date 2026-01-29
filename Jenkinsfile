@@ -95,7 +95,7 @@ pipeline {
         HELM_DATA_HOME   = '/tmp/helm/data'
       }
       steps {
-        container('deploy-tools') {
+        container('deploy-tools') {   // alpine/helm:4
           sh '''
             # Create Helm directories for temp config
             mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
@@ -103,12 +103,12 @@ pipeline {
             # Debug: verify Helm chart exists
             ls -l ${WORKSPACE}/helm/myapp
 
-            # Install or upgrade Helm release
+            # Deploy using pre-built, pre-patched image
             helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
-              --set image.tag=${BUILD_NUMBER} \
-              --rollback-on-failure \
+              --set image.repository=my-registry.local/myapp \
+              --set image.tag=53-patched \
               --wait \
-              --timeout 5m
+              --timeout 10m
           '''
         }
       }
