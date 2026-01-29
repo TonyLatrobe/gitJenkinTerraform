@@ -84,11 +84,8 @@ pipeline {
     }
 
     stage('Deploy') {
-      agent {
-        kubernetes {
-          yamlFile 'jenkins/pod-templates/deploy.yaml'
-        }
-      }
+      // Run directly on a Jenkins agent with Docker installed
+      agent { label 'docker-capable-node' }
 
       environment {
         HELM_CACHE_HOME  = '/tmp/helm/cache'
@@ -96,40 +93,26 @@ pipeline {
         HELM_DATA_HOME   = '/tmp/helm/data'
       }
 
-      stages {
+      steps {
+        sh '''
+          # Build the image locally on Jenkins node
+          docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
 
-        stage('Build Image') {
-          steps {
-            sh '''
-              docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
-            '''
-          }
+          # Push to MicroK8s local registry
+          docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
+
+          # Deploy using Helm
+          helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
+            --set image.repository=localhost:32000/myapp \
+            --set image.tag=${BUILD_NUMBER}-patched \
+            --set image.pullPolicy=IfNotPresent
+        '''
+      }
+
+      post {
+        always {
+          deleteDir()
         }
-
-        stage('Push to MicroK8s Registry') {
-          steps {
-            sh '''
-              docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
-            '''
-          }
-        }
-
-        stage('Helm Deploy') {
-          steps {
-            sh '''
-              helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
-                --set image.repository=localhost:32000/myapp \
-                --set image.tag=${BUILD_NUMBER}-patched \
-                --set image.pullPolicy=IfNotPresent
-            '''
-          }
-          post {
-            always {
-              deleteDir()
-            }
-          }
-        }
-
       }
     }
 
