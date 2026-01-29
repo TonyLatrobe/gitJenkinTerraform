@@ -107,7 +107,7 @@ pipeline {
             timeout 30 sh -c "until docker info >/dev/null 2>&1; do sleep 1; done"
 
             # Build image
-            docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
+            docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched -f docker/Dockerfile.python .
 
             # Push to MicroK8s registry
             docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
