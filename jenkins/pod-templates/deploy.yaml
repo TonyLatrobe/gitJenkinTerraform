@@ -4,15 +4,11 @@ metadata:
   labels:
     app: jenkins-deploy
 spec:
-  securityContext:
-    runAsUser: 1000
-    fsGroup: 1000
   containers:
     - name: dind
       image: docker:26-dind
       securityContext:
-        runAsUser: 1000       # Jenkins user inside the container
-        fsGroup: 1000         # group for mounted volumes
+        privileged: true   # required for DinD
       env:
         - name: DOCKER_TLS_CERTDIR
           value: ""
