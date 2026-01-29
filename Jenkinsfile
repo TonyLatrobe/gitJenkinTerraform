@@ -83,54 +83,47 @@ pipeline {
       }
     }
 
-    stage('Deploy') {
-      agent {
-        kubernetes {
-          yamlFile 'jenkins/pod-templates/deploy.yaml'
-        }
-      }
-
-      environment {
-        HELM_CACHE_HOME  = '/tmp/helm/cache'
-        HELM_CONFIG_HOME = '/tmp/helm/config'
-        HELM_DATA_HOME   = '/tmp/helm/data'
-      }
-
-      steps {
-        container('dind') {
-          dir('/workspace') {
-            sh '''
-              # Copy Jenkins workspace into pod mount
-              cp -r ${WORKSPACE}/* .
-
-              # Start Docker daemon
-              dockerd-entrypoint.sh &
-
-              # Wait for Docker daemon to be ready
-              timeout 30 sh -c "until docker info >/dev/null 2>&1; do sleep 1; done"
-
-              # Build Docker image
-              docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
-
-              # Push to MicroK8s registry
-              docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
-
-              # Deploy with Helm
-              helm upgrade --install myapp /workspace/helm/myapp \
-                --set image.repository=localhost:32000/myapp \
-                --set image.tag=${BUILD_NUMBER}-patched \
-                --set image.pullPolicy=IfNotPresent
-            '''
-          }
-        }
-      }
-
-      post {
-        always {
-          deleteDir()
-        }
-      }
+ stage('Deploy') {
+  agent {
+    kubernetes {
+      yamlFile 'jenkins/pod-templates/deploy.yaml'
     }
+  }
 
+  environment {
+    HELM_CACHE_HOME  = '/tmp/helm/cache'
+    HELM_CONFIG_HOME = '/tmp/helm/config'
+    HELM_DATA_HOME   = '/tmp/helm/data'
+    DOCKER_HOST      = 'tcp://localhost:2375'  // DinD daemon
+  }
+
+  steps {
+    container('dind') {
+      sh '''
+        # Start Docker daemon
+        dockerd-entrypoint.sh &
+
+        # Wait for Docker daemon to be ready
+        timeout 30 sh -c "until docker info >/dev/null 2>&1; do sleep 1; done"
+
+        # Build image
+        docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
+
+        # Push to MicroK8s registry
+        docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
+
+        # Deploy with Helm
+        helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
+          --set image.repository=localhost:32000/myapp \
+          --set image.tag=${BUILD_NUMBER}-patched \
+          --set image.pullPolicy=IfNotPresent
+      '''
+    }
+  }
+
+  post {
+    always {
+      deleteDir()
+    }
   }
 }

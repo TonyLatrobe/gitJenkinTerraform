@@ -21,10 +21,6 @@ spec:
       volumeMounts:
         - name: docker-graph-storage
           mountPath: /var/lib/docker
-        - name: workspace
-          mountPath: /workspace
   volumes:
     - name: docker-graph-storage
-      emptyDir: {}
-    - name: workspace
       emptyDir: {}
