@@ -1,20 +1,22 @@
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    app: jenkins-deploy
 spec:
-  securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
-
   containers:
-    - name: deploy-tools
-      image: localhost:5000/alpine/helm:4
+    - name: dind
+      image: docker:26-dind
+      securityContext:
+        privileged: true         # DinD requires privileged container
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""             # disable TLS for simplicity in local cluster
       command: ["cat"]
       tty: true
-      env:
-        - name: HELM_CACHE_HOME
-          value: /tmp/helm/cache
-        - name: HELM_CONFIG_HOME
-          value: /tmp/helm/config
-        - name: HELM_DATA_HOME
-          value: /tmp/helm/data
+      volumeMounts:
+        - name: docker-graph-storage
+          mountPath: /var/lib/docker
+  volumes:
+    - name: docker-graph-storage
+      emptyDir: {}
