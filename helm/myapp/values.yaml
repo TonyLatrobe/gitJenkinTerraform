@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: myapp
+  repository: localhost:32000/myapp
   tag: latest
   pullPolicy: IfNotPresent
 

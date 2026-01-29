@@ -94,24 +94,27 @@ pipeline {
         HELM_CONFIG_HOME = '/tmp/helm/config'
         HELM_DATA_HOME   = '/tmp/helm/data'
       }
-      steps {
-        container('deploy-tools') {   // alpine/helm:4
-          sh '''
-            # Create Helm directories for temp config
-            mkdir -p $HELM_CACHE_HOME $HELM_CONFIG_HOME $HELM_DATA_HOME
-
-            # Debug: verify Helm chart exists
-            ls -l ${WORKSPACE}/helm/myapp
-
-            # Deploy using pre-built, pre-patched image
-            helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
-              --set image.repository=my-registry.local/myapp \
-              --set image.tag=53-patched \
-              --wait \
-              --timeout 10m
-          '''
-        }
+      stage('Build Image') {
+        sh '''
+          docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
+        '''
       }
+
+      stage('Push to MicroK8s Registry') {
+        sh '''
+          docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
+        '''
+      }
+
+      stage('Deploy') {
+        sh '''
+          helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
+            --set image.repository=localhost:32000/myapp \
+            --set image.tag=${BUILD_NUMBER}-patched \
+            --set image.pullPolicy=IfNotPresent
+        '''
+      }
+
       post {
         always {
           deleteDir()
