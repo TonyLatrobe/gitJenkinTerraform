@@ -89,30 +89,42 @@ pipeline {
           yamlFile 'jenkins/pod-templates/deploy.yaml'
         }
       }
+
       environment {
         HELM_CACHE_HOME  = '/tmp/helm/cache'
         HELM_CONFIG_HOME = '/tmp/helm/config'
         HELM_DATA_HOME   = '/tmp/helm/data'
       }
-      stage('Build Image') {
-        sh '''
-          docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
-        '''
-      }
 
-      stage('Push to MicroK8s Registry') {
-        sh '''
-          docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
-        '''
-      }
+      stages {
 
-      stage('Deploy') {
-        sh '''
-          helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
-            --set image.repository=localhost:32000/myapp \
-            --set image.tag=${BUILD_NUMBER}-patched \
-            --set image.pullPolicy=IfNotPresent
-        '''
+        stage('Build Image') {
+          steps {
+            sh '''
+              docker build -t localhost:32000/myapp:${BUILD_NUMBER}-patched .
+            '''
+          }
+        }
+
+        stage('Push to MicroK8s Registry') {
+          steps {
+            sh '''
+              docker push localhost:32000/myapp:${BUILD_NUMBER}-patched
+            '''
+          }
+        }
+
+        stage('Helm Deploy') {
+          steps {
+            sh '''
+              helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
+                --set image.repository=localhost:32000/myapp \
+                --set image.tag=${BUILD_NUMBER}-patched \
+                --set image.pullPolicy=IfNotPresent
+            '''
+          }
+        }
+
       }
 
       post {
