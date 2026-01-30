@@ -1,19 +1,19 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: jenkins-pod
+  name: jenkins-agent
 spec:
-  hostNetwork: true  # Allow the pod to use the host network
   containers:
-    - name: dind
-      image: docker:latest
-      securityContext:
-        privileged: true  # Required for DinD
-      volumeMounts:
-        - mountPath: /var/run/docker.sock
-          name: docker-socket
+  - name: containerd
+    image: ghcr.io/containerd/containerd:v1.8.8  # pinned version
+    command:
+      - tail
+      - -f
+      - /dev/null  # keeps the container alive for Jenkins exec
+    volumeMounts:
+      - mountPath: /var/run/containerd
+        name: containerd-socket
   volumes:
-    - name: docker-socket
+    - name: containerd-socket
       hostPath:
-        path: /var/run/docker.sock
-        type: Socket
+        path: /var/run/containerd
