@@ -2,7 +2,9 @@
 FROM python:3.14-slim-bookworm
 
 # Install CA certificates and build tools for pip packages
-RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list \
+RUN echo "deb https://deb.debian.org/debian bookworm main contrib non-free" > /etc/apt/sources.list \
+    && echo "deb https://deb.debian.org/debian bookworm-updates main contrib non-free" >> /etc/apt/sources.list \
+    && echo "deb https://deb.debian.org/debian-security bookworm-security main contrib non-free" >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -12,7 +14,6 @@ RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.l
         bash \
         git \
     && rm -rf /var/lib/apt/lists/*
-
 
 # Create a non-root user and group
 RUN groupadd -r appuser && useradd -r -g appuser appuser
@@ -29,7 +30,6 @@ COPY tests/ tests/
 
 # Make sure appuser owns everything
 RUN chown -R appuser:appuser /app
-
 
 # Switch to non-root user
 USER appuser
