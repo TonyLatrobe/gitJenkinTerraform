@@ -7,6 +7,10 @@ pipeline {
       agent {
         kubernetes {
           yamlFile 'jenkins/pod-templates/deploy.yaml' // must have DinD container
+          defaultContainer 'dind'
+          yamlMergeStrategy 'merge'
+          // OPTION 1: use host networking for DinD
+          hostNetwork true
         }
       }
       steps {
@@ -96,6 +100,9 @@ pipeline {
       agent {
         kubernetes {
           yamlFile 'jenkins/pod-templates/deploy.yaml'
+          defaultContainer 'dind'
+          yamlMergeStrategy 'merge'
+          hostNetwork true  // OPTION 1 applied here too
         }
       }
 
