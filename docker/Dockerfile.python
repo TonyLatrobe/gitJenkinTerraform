@@ -22,6 +22,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source
 COPY src/ src/
+COPY tests/ tests/
+
+# Make sure appuser owns everything
+RUN chown -R appuser:appuser /app
+
 
 # Switch to non-root user
 USER appuser
