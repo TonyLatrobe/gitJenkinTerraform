@@ -6,11 +6,7 @@ pipeline {
     stage('Unit Tests') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/deploy.yaml' // must have DinD container
-          defaultContainer 'dind'
-          yamlMergeStrategy 'merge'
-          // OPTION 1: use host networking for DinD
-          hostNetwork true
+          yamlFile 'jenkins/pod-templates/deploy.yaml'  // YAML file here
         }
       }
       steps {
@@ -40,7 +36,7 @@ pipeline {
     stage('Terraform Validate') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/terraform.yaml'
+          yamlFile 'jenkins/pod-templates/terraform.yaml'  // YAML file here
         }
       }
       steps {
@@ -58,7 +54,7 @@ pipeline {
     stage('Terraform Security') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/security.yaml'
+          yamlFile 'jenkins/pod-templates/security.yaml'  // YAML file here
         }
       }
       steps {
@@ -77,7 +73,7 @@ pipeline {
 
             FAILURE_RATE=$(awk "BEGIN {print ($FAILED/$TOTAL)*100}")
 
-            echo "Checkov failure rate: ${FAILURE_RATE}%"
+            echo "Checkov failure rate: ${FAILURE_RATE}%" 
 
             if (( $(echo "$FAILURE_RATE > 10" | bc -l) )); then
               echo "❌ Failure rate exceeds 10%"
@@ -99,10 +95,7 @@ pipeline {
     stage('Deploy') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/deploy.yaml'
-          defaultContainer 'dind'
-          yamlMergeStrategy 'merge'
-          hostNetwork true  // OPTION 1 applied here too
+          yamlFile 'jenkins/pod-templates/deploy.yaml'  // YAML file here
         }
       }
 
