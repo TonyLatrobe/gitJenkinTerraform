@@ -8,7 +8,7 @@ spec:
 
   containers:
     - name: deploy-container
-      image: "localhost:32000/myapp:53"  # Hardcoded image name
+      image: localhost:32000/jenkins/myapp:53  # Hardcoded image name
       imagePullPolicy: IfNotPresent
       command: ["cat"]
       tty: true
