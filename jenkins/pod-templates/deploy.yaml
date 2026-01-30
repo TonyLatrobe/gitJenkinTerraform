@@ -8,7 +8,7 @@ spec:
 
   containers:
     - name: deploy-container
-      image: localhost:32000/jenkins/python-ci:3.12  # Hardcoded image name
+      image: localhost:32000/jenkins/python-ci:3.12  # Hardcoded image name THIS IS IN THE "sudo docker images"
       imagePullPolicy: IfNotPresent
       command: ["cat"]
       tty: true
