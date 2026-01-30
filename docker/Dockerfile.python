@@ -1,5 +1,10 @@
 FROM python:3.11-slim
 
+# Install CA certificates to fix pip SSL issues
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user and group
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
@@ -15,9 +20,9 @@ COPY src/ src/
 # Switch to non-root user
 USER appuser
 
-# Set a default command
+# Default command
 CMD ["python", "src/main.py"]
 
-# Add a basic HEALTHCHECK
+# HEALTHCHECK
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD pgrep -f "python src/main.py" || exit 1

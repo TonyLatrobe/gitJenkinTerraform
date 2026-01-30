@@ -6,14 +6,17 @@ pipeline {
     stage('Unit Tests') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/python.yaml'
+          yamlFile 'jenkins/pod-templates/deploy.yaml' // use dind pod so Docker is available
         }
       }
       steps {
-        container('python') {
+        container('dind') {
           sh '''
-            python3 -m venv .venv
-            . .venv/bin/activate
+            # Build the Python image locally
+            docker build -t myapp:python -f docker/Dockerfile.python ./app
+
+            # Run unit tests inside the container
+            docker run --rm myapp:python pytest tests/
           '''
         }
       }
