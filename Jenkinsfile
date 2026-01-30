@@ -6,12 +6,18 @@ pipeline {
     stage('Unit Tests') {
       agent {
         kubernetes {
-          yamlFile 'jenkins/pod-templates/deploy.yaml' // use dind pod so Docker is available
+          yamlFile 'jenkins/pod-templates/deploy.yaml' // must have DinD container
         }
       }
       steps {
         container('dind') {
           sh '''
+            # Start Docker daemon
+            dockerd-entrypoint.sh &
+
+            # Wait for Docker daemon to be ready
+            timeout 30 sh -c "until docker info >/dev/null 2>&1; do sleep 1; done"
+
             # Build the Python image locally
             docker build -t myapp:python -f docker/Dockerfile.python ./app
 
