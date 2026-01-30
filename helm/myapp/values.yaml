@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: localhost:32000/myapp
-  tag: latest
+  tag: v1.0
   pullPolicy: IfNotPresent
 
 service:
