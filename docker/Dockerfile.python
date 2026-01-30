@@ -2,14 +2,17 @@
 FROM python:3.14-slim-bookworm
 
 # Install CA certificates and build tools for pip packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    build-essential \
-    libffi-dev \
-    libssl-dev \
-    bash \
-    git \
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        build-essential \
+        libffi-dev \
+        libssl-dev \
+        bash \
+        git \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Create a non-root user and group
 RUN groupadd -r appuser && useradd -r -g appuser appuser
