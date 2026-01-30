@@ -8,7 +8,7 @@ spec:
 
   containers:
     - name: deploy-container
-      image: "${IMAGE_NAME}:${BUILD_NUMBER}-patched"  # Placeholder for dynamic image name
+      image: "localhost:32000/myapp:53"  # Hardcoded image name
       imagePullPolicy: IfNotPresent
       command: ["cat"]
       tty: true

@@ -1,9 +1,7 @@
 pipeline {
     agent none
     environment {
-        REGISTRY = 'localhost:32000'  // MicroK8s registry
-        IMAGE_NAME = 'myapp'  // The image name
-    }
+      }
     stages {
         stage('Unit Tests') {
             agent {
@@ -66,20 +64,18 @@ pipeline {
             }
             steps {
                 container('deploy-container') {
-                    script {
-                        def buildTag = "${REGISTRY}/${IMAGE_NAME}:${BUILD_NUMBER}-patched"
-                        echo "Deploying image with tag: ${buildTag}"
-
-                        // Pull the image from the MicroK8s registry (make sure it's available)
-                        sh """
-                            docker pull ${buildTag}
-                        """
-
-                        // Deploy using kubectl, updating the deployment with the image from the registry
-                        sh """
-                            kubectl set image deployment/myapp myapp=${buildTag}
-                        """
-                    }
+                    // Simply run the necessary deployment tasks inside the container
+                    sh 'echo "Deployment container is running"'
+                    
+                    // You can add any further steps here if required
+                    sh '''
+                        python3 -m venv .venv
+                        . .venv/bin/activate
+                        # Install dependencies if needed
+                        #pip install -r ${PYTHON_APP_PATH}/requirements.txt
+                        # Run the app or a specific deployment command
+                        python /app.py
+                    '''
                 }
             }
         }
