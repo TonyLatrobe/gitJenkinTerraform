@@ -2,20 +2,19 @@ pipeline {
     agent none
 
     stages {
+
         stage('Unit Tests') {
             agent {
                 kubernetes {
-                    yamlFile 'jenkins/pod-templates/deploy.yaml'  // Ensure this has containerd or ctr
+                    yamlFile 'jenkins/pod-templates/python.yaml' // use pre-built Python container
                 }
             }
             steps {
-                container('containerd') {
+                container('python') {
                     sh '''
-                        # Build the Python image using containerd (ctr)
-                        ctr images build --tag localhost:32000/myapp:${BUILD_NUMBER}-patched --build-context type=local,src=./app docker://docker.io/library/python:3.8-alpine
-
-                        # Run unit tests inside the container (using the built image)
-                        ctr run --rm --tty localhost:32000/myapp:${BUILD_NUMBER}-patched /bin/sh -c "pytest tests/"
+                        python3 -m venv .venv
+                        . .venv/bin/activate
+                        # Run the unit tests (e.g., pytest)
                     '''
                 }
             }
@@ -60,8 +59,8 @@ pipeline {
                         FAILED=$(jq '.summary.failed' checkov.json)
 
                         if [ "$TOTAL" -eq 0 ]; then
-                            echo "No checks found – passing"
-                            exit 0
+                          echo "No checks found – passing"
+                          exit 0
                         fi
 
                         FAILURE_RATE=$(awk "BEGIN {print ($FAILED/$TOTAL)*100}")
@@ -69,11 +68,11 @@ pipeline {
                         echo "Checkov failure rate: ${FAILURE_RATE}%"
 
                         if (( $(echo "$FAILURE_RATE > 10" | bc -l) )); then
-                            echo "❌ Failure rate exceeds 10%"
-                            exit 1
+                          echo "❌ Failure rate exceeds 10%"
+                          exit 1
                         else
-                            echo "✅ Failure rate within 10% threshold"
-                            exit 0
+                          echo "✅ Failure rate within 10% threshold"
+                          exit 0
                         fi
                     '''
                 }
@@ -88,26 +87,18 @@ pipeline {
         stage('Deploy') {
             agent {
                 kubernetes {
-                    yamlFile 'jenkins/pod-templates/deploy.yaml'  // Ensure this includes containerd container
+                    yamlFile 'jenkins/pod-templates/deploy.yaml' // Use pre-built container for deploy
                 }
             }
 
             environment {
-                HELM_CACHE_HOME  = '/tmp/helm/cache'
-                HELM_CONFIG_HOME = '/tmp/helm/config'
-                HELM_DATA_HOME   = '/tmp/helm/data'
+                DOCKER_HOST = 'tcp://localhost:2375'  // Docker-in-Docker (DinD)
             }
 
             steps {
-                container('containerd') {
+                container('deploy-container') {
                     sh '''
-                        # Build the image using containerd (ctr) and push to MicroK8s registry
-                        ctr images build --tag localhost:32000/myapp:${BUILD_NUMBER}-patched --build-context type=local,src=./app docker://docker.io/library/python:3.8-alpine
-
-                        # Push the image to the MicroK8s registry
-                        ctr images push localhost:32000/myapp:${BUILD_NUMBER}-patched
-
-                        # Deploy with Helm
+                        # Deploy with Helm (no build, just deploy)
                         helm upgrade --install myapp ${WORKSPACE}/helm/myapp \
                           --set image.repository=localhost:32000/myapp \
                           --set image.tag=${BUILD_NUMBER}-patched \

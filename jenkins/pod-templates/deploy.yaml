@@ -1,19 +1,14 @@
 apiVersion: v1
 kind: Pod
-metadata:
-  name: jenkins-agent
 spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
   containers:
-  - name: containerd
-    image: ghcr.io/containerd/containerd:v1.8.8  # pinned version
-    command:
-      - tail
-      - -f
-      - /dev/null  # keeps the container alive for Jenkins exec
-    volumeMounts:
-      - mountPath: /var/run/containerd
-        name: containerd-socket
-  volumes:
-    - name: containerd-socket
-      hostPath:
-        path: /var/run/containerd
+    - name: deploy-container
+      image: localhost:32000/myapp:${BUILD_NUMBER}-patched
+      imagePullPolicy: IfNotPresent
+      command: ["cat"]
+      tty: true
