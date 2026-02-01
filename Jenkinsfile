@@ -64,15 +64,13 @@ pipeline {
             }
             steps {
                 container('deploy-container') {
-                    sh '''
-                        echo "Deployment container is running"
-                        cd app
-                        python3 -m venv .venv
-                        . .venv/bin/activate
-
-                        # Run the app and exit
-                        python3 -m src.app 3 5
-                    '''
+                    dir('app') {
+                        sh '''
+                            python3 -m venv .venv
+                            . .venv/bin/activate
+                            python3 -m src.app 3 5
+                        '''
+                    }
                 }
             }
         }
