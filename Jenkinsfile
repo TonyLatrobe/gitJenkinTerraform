@@ -45,7 +45,11 @@ pipeline {
             }
             steps {
                 container('terraform') {
-                    sh 'terraform init && terraform validate'
+                    sh '''
+                    cd terraform
+                    terraform init
+                    terraform validate
+                    '''
                 }
             }
             post {
