@@ -11,10 +11,8 @@ pipeline {
             steps {
                 container('python') {
                     sh '''
-                        python3 -m venv .venv
-                        . .venv/bin/activate
-                        # Run the unit tests
-                        pytest
+                        # Run tests directly — no need to create venv
+                        pytest app/
                     '''
                 }
             }
@@ -29,10 +27,8 @@ pipeline {
             steps {
                 container('python') {
                     sh '''
-                        python3 -m venv .venv
-                        . .venv/bin/activate
-                        # Build / install dependencies
-                        # e.g., python -m pip install -r requirements.txt
+                        # Already installed dependencies in Docker
+                        echo "Build step - nothing to do"
                     '''
                 }
             }
@@ -47,10 +43,7 @@ pipeline {
             steps {
                 container('python') {
                     sh '''
-                        python3 -m venv .venv
-                        . .venv/bin/activate
-                        # Run tests after the build
-                        pytest --maxfail=1 --disable-warnings -q
+                        pytest --maxfail=1 --disable-warnings -q app/
                     '''
                 }
             }
@@ -65,11 +58,11 @@ pipeline {
             steps {
                 container('deploy-container') {
                     sh '''
-                        kubectl apply -f jenkins/job.yaml
-                        kubectl wait --for=condition=complete job/my-app
+                        # Run the app directly — dependencies baked into image
+                        python -m src.app 3 5
                     '''
                 }
             }
         }
-    } // end stages
-} // end pipeline
+    }
+}
