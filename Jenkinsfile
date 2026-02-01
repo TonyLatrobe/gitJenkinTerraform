@@ -56,23 +56,19 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/deploy.yaml'
-                }
-            }
-            steps {
-                container('deploy-container') {
-                    dir('app') {
-                        sh '''
-                            python3 -m venv .venv
-                            . .venv/bin/activate
-                            python3 -m src.app 3 5
-                        '''
-                    }
-                }
-            }
+
+stage('Deploy') {
+    agent {
+        kubernetes {
+            yamlFile 'jenkins/pod-templates/deploy.yaml'
+        }
+    }
+    steps {
+        container('deploy-container') {
+            sh '''
+                kubectl apply -f k8s/job.yaml
+                kubectl wait --for=condition=complete job/my-app
+            '''
         }
     } // end stages
 } // end pipeline

@@ -6,9 +6,11 @@ spec:
     runAsGroup: 1000
     fsGroup: 1000
 
+  restartPolicy: Never
+
   containers:
     - name: deploy-container
-      image: localhost:32000/jenkins/python-ci:3.12  # Hardcoded image name THIS IS IN THE "sudo docker images"
+      image: localhost:32000/jenkins/python-ci:3.12
       imagePullPolicy: IfNotPresent
       command: ["cat"]
       tty: true
