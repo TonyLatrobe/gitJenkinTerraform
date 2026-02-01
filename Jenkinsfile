@@ -72,7 +72,7 @@ pipeline {
                         # Install dependencies if needed
                         #pip install -r ${PYTHON_APP_PATH}/requirements.txt
                         # Run the app or a specific deployment command
-                        python3 src/app.py
+                        python3 src/app.py 3 5
                     '''
                 }
             }
