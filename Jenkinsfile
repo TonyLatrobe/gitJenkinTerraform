@@ -65,7 +65,7 @@ pipeline {
             steps {
                 container('deploy-container') {
                     sh '''
-                        kubectl apply -f k8s/job.yaml
+                        kubectl apply -f jenkins/job.yaml
                         kubectl wait --for=condition=complete job/my-app
                     '''
                 }
