@@ -1,5 +1,6 @@
 pipeline {
     agent none
+
     stages {
         stage('Unit Tests') {
             agent {
@@ -12,13 +13,13 @@ pipeline {
                     sh '''
                         python3 -m venv .venv
                         . .venv/bin/activate
-                        # Run the unit tests (e.g., pytest)
+                        # Run the unit tests
                         pytest
                     '''
                 }
             }
         }
-        
+
         stage('Build') {
             agent {
                 kubernetes {
@@ -30,7 +31,8 @@ pipeline {
                     sh '''
                         python3 -m venv .venv
                         . .venv/bin/activate
-                        # Run the build (e.g., install dependencies, etc.)
+                        # Build / install dependencies
+                        # e.g., python -m pip install -r requirements.txt
                     '''
                 }
             }
@@ -47,7 +49,7 @@ pipeline {
                     sh '''
                         python3 -m venv .venv
                         . .venv/bin/activate
-                        # Run tests after the build (e.g., pytest)
+                        # Run tests after the build
                         pytest --maxfail=1 --disable-warnings -q
                     '''
                 }
@@ -62,35 +64,17 @@ pipeline {
             }
             steps {
                 container('deploy-container') {
-                    // Simply run the necessary deployment tasks inside the container
-                    sh 'echo "Deployment container is running"'
-                    
-                    // You can add any further steps here if required
                     sh '''
+                        echo "Deployment container is running"
+
                         python3 -m venv .venv
                         . .venv/bin/activate
-                        # Install dependencies if needed
-                        #pip install -r ${PYTHON_APP_PATH}/requirements.txt
-                        # Run the app or a specific deployment command
-                        python3 src/app.py 3 5
+
+                        # Run the app and exit
+                        python3 -m src.app 3 5
                     '''
                 }
             }
         }
-        
-        stage('Cleanup') {
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/python.yaml'
-                }
-            }
-            steps {
-                container('python') {
-                    sh '''
-                        # Cleanup code or post-deployment tasks
-                    '''
-                }
-            }
-        }
-    }
-}
+    } // end stages
+} // end pipeline
