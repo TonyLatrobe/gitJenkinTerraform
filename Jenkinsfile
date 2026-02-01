@@ -57,10 +57,9 @@ pipeline {
             }
             steps {
                 container('deploy-container') {
-                    sh '''
-                        # Run the app directly — dependencies baked into image
-                        python -m src.app 3 5
-                    '''
+                    dir('app') {
+                        sh 'python -m src.app 3 5'
+                    }
                 }
             }
         }
