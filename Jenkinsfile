@@ -1,4 +1,5 @@
 pipeline {
+    agent none
 
     stages {
         stage('Debug') {
@@ -8,17 +9,14 @@ pipeline {
         }
 
         stage('Unit Tests') {
-            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/python.yaml'
                 }
             }
-            
             steps {
                 container('python') {
                     sh '''
-                        # Run tests directly — no need to create venv
                         pytest app/
                     '''
                 }
@@ -26,13 +24,11 @@ pipeline {
         }
 
         stage('Build') {
-            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/python.yaml'
                 }
             }
-            
             steps {
                 container('python') {
                     sh 'echo "Build step - nothing to do"'
@@ -41,13 +37,11 @@ pipeline {
         }
 
         stage('Terraform Validate') {
-            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/terraform.yaml'
                 }
             }
-            
             steps {
                 container('terraform') {
                     sh '''
@@ -65,13 +59,11 @@ pipeline {
         }
 
         stage('Terraform Security') {
-            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/security.yaml'
                 }
             }
-            
             steps {
                 container('security-tools') {
                     sh '''
@@ -91,10 +83,10 @@ pipeline {
                         echo "Checkov failure rate: ${FAILURE_RATE}%"
 
                         if (( $(echo "$FAILURE_RATE > 10" | bc -l) )); then
-                          echo "❌ Failure rate exceeds 10%"
+                          echo "Failure rate exceeds 10%"
                           exit 1
                         else
-                          echo "✅ Failure rate within 10% threshold"
+                          echo "Failure rate within 10% threshold"
                           exit 0
                         fi
                     '''
@@ -108,13 +100,11 @@ pipeline {
         }
 
         stage('Deploy') {
-            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/deploy.yaml'
                 }
             }
-            
             steps {
                 container('deploy-container') {
                     dir('app') {
