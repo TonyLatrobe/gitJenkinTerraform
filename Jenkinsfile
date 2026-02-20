@@ -1,9 +1,4 @@
 pipeline {
-    agent {
-        kubernetes { // force to use the same pod/container for all stages (instead of creating them at each stage)
-            yamlFile 'jenkins/pod-templates/devops.yaml'
-        }
-    }
 
     stages {
         stage('Debug') {
@@ -13,13 +8,13 @@ pipeline {
         }
 
         stage('Unit Tests') {
-            /*
+            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/python.yaml'
                 }
             }
-            */
+            
             steps {
                 container('python') {
                     sh '''
@@ -31,13 +26,13 @@ pipeline {
         }
 
         stage('Build') {
-            /*
+            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/python.yaml'
                 }
             }
-            */
+            
             steps {
                 container('python') {
                     sh 'echo "Build step - nothing to do"'
@@ -46,13 +41,13 @@ pipeline {
         }
 
         stage('Terraform Validate') {
-            /*
+            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/terraform.yaml'
                 }
             }
-            */
+            
             steps {
                 container('terraform') {
                     sh '''
@@ -70,13 +65,13 @@ pipeline {
         }
 
         stage('Terraform Security') {
-            /*
+            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/security.yaml'
                 }
             }
-            */
+            
             steps {
                 container('security-tools') {
                     sh '''
@@ -113,13 +108,13 @@ pipeline {
         }
 
         stage('Deploy') {
-            /*
+            
             agent {
                 kubernetes {
                     yamlFile 'jenkins/pod-templates/deploy.yaml'
                 }
             }
-            */
+            
             steps {
                 container('deploy-container') {
                     dir('app') {
