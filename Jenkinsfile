@@ -21,12 +21,16 @@ pipeline {
             }
             */
             steps {
+                /*
                 container('python') {
+                */
                     sh '''
                         # Run tests directly — no need to create venv
                         pytest app/
                     '''
+                /*
                 }
+                */
             }
         }
 
@@ -39,9 +43,13 @@ pipeline {
             }
             */
             steps {
+                /*
                 container('python') {
+                */
                     sh 'echo "Build step - nothing to do"'
+                /*
                 }
+                */
             }
         }
 
@@ -54,13 +62,17 @@ pipeline {
             }
             */
             steps {
+                /*
                 container('terraform') {
+                */
                     sh '''
-                    cd terraform
-                    terraform init
-                    terraform validate
+                        cd terraform
+                        terraform init
+                        terraform validate
                     '''
+                /*
                 }
+                */
             }
             post {
                 always {
@@ -78,7 +90,9 @@ pipeline {
             }
             */
             steps {
+                /*
                 container('security-tools') {
+                */
                     sh '''
                         set +e
                         checkov -d . -o json > checkov.json
@@ -103,7 +117,9 @@ pipeline {
                           exit 0
                         fi
                     '''
+                /*
                 }
+                */
             }
             post {
                 always {
@@ -121,11 +137,15 @@ pipeline {
             }
             */
             steps {
+                /*
                 container('deploy-container') {
+                */
                     dir('app') {
                         sh 'python -m src.app 3 5'
                     }
+                /*
                 }
+                */
             }
         }
     }
