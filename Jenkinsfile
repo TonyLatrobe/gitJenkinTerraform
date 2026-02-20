@@ -1,5 +1,9 @@
 pipeline {
-    agent none
+    agent {
+        kubernetes { // force to use the same pod/container for all stages (instead of creating them at each stage)
+            yamlFile 'jenkins/pod-templates/python.yaml'
+        }
+    }
 
     stages {
         stage('Debug') {
