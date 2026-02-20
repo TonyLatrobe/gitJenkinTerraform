@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: devops
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  restartPolicy: Never
+
+  containers:
+    - name: python
+      image: localhost:32000/jenkins/python-ci:3.12
+      imagePullPolicy: IfNotPresent
+      command: ["cat"]
+      tty: true
+      workingDir: /app
+
+    - name: terraform
+      image: hashicorp/terraform:1.7.6
+      command: ["cat"]
+      tty: true
+      workingDir: /terraform
+
+    - name: security-tools
+      image: bridgecrew/checkov:2.3.0
+      command: ["cat"]
+      tty: true
+      workingDir: /security
+
+    - name: deploy-container
+      image: localhost:32000/jenkins/python-ci:3.12
+      command: ["cat"]
+      tty: true
+      workingDir: /app
+
+  volumes:
+    - name: jenkins-data
+      persistentVolumeClaim:
+        claimName: jenkins-pvc
+
+    - name: k8s-ca
+      configMap:
+        name: jenkins-ca-cert
