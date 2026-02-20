@@ -1,89 +1,26 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: pipelinetest
   labels:
-    app: pipelinetest
+    app: jenkins-ci
 spec:
-  serviceAccountName: jenkins
-  securityContext:
-    fsGroup: 1000
+  serviceAccountName: default
+
   containers:
-    - name: jnlp
-      image: jenkins/inbound-agent:latest
+    - name: ci
+      image: localhost:32000/jenkins/python-ci:3.12
       imagePullPolicy: IfNotPresent
+
+      command:
+        - cat
+      tty: true
+
       resources:
         requests:
-          memory: "128Mi"
-          cpu: "100m"
-        limits:
-          memory: "256Mi"
+          memory: "512Mi"
           cpu: "250m"
-      volumeMounts:
-        - name: jenkins-home
-          mountPath: /home/jenkins/agent
-
-    - name: python
-      image: python:3.11-slim
-      imagePullPolicy: IfNotPresent
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "200m"
         limits:
-          memory: "512Mi"
-          cpu: "500m"
-      volumeMounts:
-        - name: jenkins-home
-          mountPath: /home/jenkins/agent
+          memory: "1Gi"
+          cpu: "1000m"
 
-    - name: terraform
-      image: hashicorp/terraform:1.6
-      imagePullPolicy: IfNotPresent
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "200m"
-        limits:
-          memory: "512Mi"
-          cpu: "500m"
-      volumeMounts:
-        - name: jenkins-home
-          mountPath: /home/jenkins/agent
-
-    - name: security-tools
-      image: bridgecrew/checkov:3.2.500
-      imagePullPolicy: IfNotPresent
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "200m"
-        limits:
-          memory: "512Mi"
-          cpu: "500m"
-      volumeMounts:
-        - name: jenkins-home
-          mountPath: /home/jenkins/agent
-
-    - name: deploy-container
-      image: python:3.11-slim
-      imagePullPolicy: IfNotPresent
-      resources:
-        requests:
-          memory: "256Mi"
-          cpu: "200m"
-        limits:
-          memory: "512Mi"
-          cpu: "500m"
-      volumeMounts:
-        - name: jenkins-home
-          mountPath: /home/jenkins/agent
-
-  volumes:
-    - name: jenkins-home
-      persistentVolumeClaim:
-        claimName: jenkins-pvc
-
-    - name: k8s-ca
-      configMap:
-        name: jenkins-ca-cert
+  restartPolicy: Never
