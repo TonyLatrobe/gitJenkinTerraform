@@ -24,6 +24,14 @@ pipeline {
                 /*
                 container('python') {
                 */
+
+                    sh '''
+                        echo "Container hostname:"
+                        hostname
+                        echo "PATH=$PATH"
+                        which pytest || true
+                    '''
+
                     sh '''
                         # Run tests directly — no need to create venv
                         pytest app/
