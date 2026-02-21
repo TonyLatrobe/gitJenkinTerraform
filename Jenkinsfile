@@ -149,9 +149,7 @@ pipeline {
                 /*
                 container('deploy-container') {
                 */
-                    dir('app') {
-                        sh 'python -m src.app 3 5'
-                    }
+                        sh 'python -m src.app 3 5'  
                 /*
                 }
                 */
