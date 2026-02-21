@@ -6,6 +6,11 @@ metadata:
 spec:
   serviceAccountName: default
 
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
   containers:
     - name: ci
       image: localhost:32000/jenkins/python-ci:3.12
