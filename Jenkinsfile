@@ -150,7 +150,10 @@ pipeline {
                 container('deploy-container') {
                 */
                         sh ''' 
-                        cd app/src 
+                        sh 'ls -R .'
+                        find . -maxdepth 3 -type f -name app.py -print
+                        
+                        cd app
                         python -m app 3 5 
                         '''  
                 /*
