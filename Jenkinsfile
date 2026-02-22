@@ -149,7 +149,7 @@ pipeline {
                 /*
                 container('deploy-container') {
                 */
-                        sh 'python -m src.app 3 5'  
+                        sh 'python -m app.src.app 3 5'  
                 /*
                 }
                 */
