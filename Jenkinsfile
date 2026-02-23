@@ -149,13 +149,17 @@ pipeline {
                 /*
                 container('deploy-container') {
                 */
-                        sh ''' 
-                        sh 'ls -R .'
-                        find . -maxdepth 3 -type f -name app.py -print
-                        
-                        cd app
-                        python -m app 3 5 
-                        '''  
+                    sh '''
+                        echo "Workspace contents:"
+                        ls -R .
+
+                        echo "Searching for app.py:"
+                        find . -maxdepth 4 -type f -name app.py -print
+
+                        # Adjust this path once you see where app.py actually is
+                        cd app/src
+                        python -m app 3 5
+                    '''
                 /*
                 }
                 */
