@@ -83,11 +83,7 @@ pipeline {
                 }
                 */
             }
-            post {
-                always {
-                    deleteDir()
-                }
-            }
+
         }
 
         stage('Terraform Security') {
@@ -130,11 +126,7 @@ pipeline {
                 }
                 */
             }
-            post {
-                always {
-                    deleteDir()
-                }
-            }
+
         }
 
         stage('Deploy') {
