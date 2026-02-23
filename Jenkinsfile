@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        kubernetes {
+        kubernetes { // force to use the same pod/container for all stages (instead of creating them at each stage)
             yamlFile 'jenkins/pod-templates/devops.yaml'
             defaultContainer 'ci'
         }
@@ -23,6 +23,7 @@ pipeline {
                 '''
 
                 sh '''
+                    # Run tests directly — no need to create venv
                     pytest app/
                 '''
             }
@@ -76,7 +77,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                # FIX: Force this stage to run in the same container as pytest
+                // FIX: Ensure Deploy runs in the same container as pytest
                 container('ci') {
                     sh '''
                         echo "Workspace contents:"
