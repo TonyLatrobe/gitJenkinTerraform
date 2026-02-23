@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        kubernetes { // force to use the same pod/container for all stages (instead of creating them at each stage)
+        kubernetes {
             yamlFile 'jenkins/pod-templates/devops.yaml'
             defaultContainer 'ci'
         }
@@ -14,133 +14,70 @@ pipeline {
         }
 
         stage('Unit Tests') {
-            /*
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/python.yaml'
-                }
-            }
-            */
             steps {
-                /*
-                container('python') {
-                */
+                sh '''
+                    echo "Container hostname:"
+                    hostname
+                    echo "PATH=$PATH"
+                    which pytest || true
+                '''
 
-                    sh '''
-                        echo "Container hostname:"
-                        hostname
-                        echo "PATH=$PATH"
-                        which pytest || true
-                    '''
-
-                    sh '''
-                        # Run tests directly — no need to create venv
-                        pytest app/
-                    '''
-                /*
-                }
-                */
+                sh '''
+                    pytest app/
+                '''
             }
         }
 
         stage('Build') {
-            /*
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/python.yaml'
-                }
-            }
-            */
             steps {
-                /*
-                container('python') {
-                */
-                    sh 'echo "Build step - nothing to do"'
-                /*
-                }
-                */
+                sh 'echo "Build step - nothing to do"'
             }
         }
 
         stage('Terraform Validate') {
-            /*
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/terraform.yaml'
-                }
-            }
-            */
             steps {
-                /*
-                container('terraform') {
-                */
-                    sh '''
-                        cd terraform
-                        terraform init
-                        terraform validate
-                    '''
-                /*
-                }
-                */
+                sh '''
+                    cd terraform
+                    terraform init
+                    terraform validate
+                '''
             }
-
         }
 
         stage('Terraform Security') {
-            /*
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/security.yaml'
-                }
-            }
-            */
             steps {
-                /*
-                container('security-tools') {
-                */
-                    sh '''
-                        set +e
-                        checkov -d . -o json > checkov.json
+                sh '''
+                    set +e
+                    checkov -d . -o json > checkov.json
 
-                        TOTAL=$(jq '.summary.total_checks' checkov.json)
-                        FAILED=$(jq '.summary.failed' checkov.json)
+                    # FIX: Checkov JSON is an array, so index [0]
+                    TOTAL=$(jq '.[0].summary.total_checks' checkov.json)
+                    FAILED=$(jq '.[0].summary.failed' checkov.json)
 
-                        if [ "$TOTAL" -eq 0 ]; then
-                          echo "No checks found – passing"
-                          exit 0
-                        fi
+                    if [ "$TOTAL" -eq 0 ]; then
+                      echo "No checks found – passing"
+                      exit 0
+                    fi
 
-                        FAILURE_RATE=$(awk "BEGIN {print ($FAILED/$TOTAL)*100}")
+                    FAILURE_RATE=$(awk "BEGIN {print ($FAILED/$TOTAL)*100}")
 
-                        echo "Checkov failure rate: ${FAILURE_RATE}%"
+                    echo "Checkov failure rate: ${FAILURE_RATE}%"
 
-                        if (( $(echo "$FAILURE_RATE > 10" | bc -l) )); then
-                          echo "❌ Failure rate exceeds 10%"
-                          exit 1
-                        else
-                          echo "✅ Failure rate within 10% threshold"
-                          exit 0
-                        fi
-                    '''
-                /*
-                }
-                */
+                    if (( $(echo "$FAILURE_RATE > 10" | bc -l) )); then
+                      echo "❌ Failure rate exceeds 10%"
+                      exit 1
+                    else
+                      echo "✅ Failure rate within 10% threshold"
+                      exit 0
+                    fi
+                '''
             }
-
         }
 
         stage('Deploy') {
-            /*
-            agent {
-                kubernetes {
-                    yamlFile 'jenkins/pod-templates/deploy.yaml'
-                }
-            }
-            */
             steps {
-                /*
-                container('deploy-container') {
-                */
+                # FIX: Force this stage to run in the same container as pytest
+                container('ci') {
                     sh '''
                         echo "Workspace contents:"
                         ls -R .
@@ -148,13 +85,10 @@ pipeline {
                         echo "Searching for app.py:"
                         find . -maxdepth 4 -type f -name app.py -print
 
-                        # Adjust this path once you see where app.py actually is
                         cd app/src
                         python -m app 3 5
                     '''
-                /*
                 }
-                */
             }
         }
     }
