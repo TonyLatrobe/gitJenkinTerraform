@@ -79,16 +79,13 @@ pipeline {
             steps {
                 // FIX: Ensure Deploy runs in the same container as pytest
                 container('ci') {
-                    sh '''
-                        echo "Workspace contents:"
-                        ls -R .
-
-                        echo "Searching for app.py:"
-                        find . -maxdepth 4 -type f -name app.py -print
-
-                        cd app/src
-                        python -m app 3 5
-                    '''
+                sh ''' 
+                echo "Workspace contents:"
+                ls -R .
+                echo "Searching for app.py:"
+                find . -maxdepth 4 -type f -name app.py -print 
+                # Run the module from the workspace root 
+                python -m app.src.app 3 5 '''
                 }
             }
         }
